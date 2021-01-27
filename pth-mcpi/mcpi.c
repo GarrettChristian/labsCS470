@@ -18,12 +18,23 @@ int thread_count;               // thread count
 long total_darts = 0;           // dart count
 long darts_in_circle = 0;       // number of hits
 
+typedef struct {
+   int thread_id, darts;
+} params_t;
+
+pthread_mutex_t mutex;
+
 void* throw_darts(void* arg)
 {
-    // seed pseudo-random number generator (TODO: use thread ID as seed)
-    unsigned long seed = 0;
+    params_t* args = (params_t *) arg;
 
-    for (long dart = 0; dart < total_darts; dart++) {
+    // seed pseudo-random number generator (TODO: use thread ID as seed)
+    unsigned long seed = args->thread_id;
+
+    int local_darts_in_circle = 0;
+
+
+    for (long dart = 0; dart < args->darts; dart++) {
 
         // throw a dart by generating a random (x,y) coordinate pair
         // using a basic linear congruential generator (LCG) algorithm
@@ -37,9 +48,14 @@ void* throw_darts(void* arg)
 
         // update hit tracker
         if (dist_sq <= 1.0) {
-            darts_in_circle++;
+	    local_darts_in_circle++;
         }
     }
+
+    pthread_mutex_lock(&mutex);
+    darts_in_circle += local_darts_in_circle;
+    pthread_mutex_unlock(&mutex);
+
 
     return NULL;
 }
@@ -55,13 +71,29 @@ int main(int argc, char* argv[])
     thread_count = strtol(argv[2], NULL, 10);
 
     START_TIMER(darts)
-
+	
     // simulate dart throws (TODO: spawn multiple threads)
-    pthread_t thread_handle;
-    pthread_create(&thread_handle, NULL, throw_darts, (void*)0);
-    pthread_join(thread_handle, NULL);
+    pthread_t thread_handle[thread_count];
+    params_t args[thread_count];    
+	
+    pthread_mutex_init(&mutex, NULL);
+
+    for (int i = 0; i < thread_count; i++) 
+    {
+	args[i].thread_id = i;
+	args[i].darts = total_darts / thread_count;
+	
+	pthread_create(&thread_handle[i], NULL, throw_darts, (void*) &args[i]);
+    }
+	
+    for (int i = 0; i < thread_count; i++)
+    {
+    	pthread_join(thread_handle[i], NULL);
+    }
 
     STOP_TIMER(darts)
+
+    pthread_mutex_destroy(&mutex);
 
     // calculate pi
     double pi_est = 4 * darts_in_circle / ((double)total_darts);
