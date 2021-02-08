@@ -3,7 +3,7 @@
  *
  * CS 470 MPI Communication Lab
  *
- * Name(s): 
+ * Name(s): Alexander Castro 
  *
  * The goal of this exercise is to gain experience using MPI collective and
  * point-to-point communication calls. This program is meant to be run with four
@@ -130,6 +130,9 @@ int main(int argc, char *argv[])
 
     tmp = allocate(NSEEDS*nprocs);
     // hint: this expected output looks very similar to the original seed output
+    
+    MPI_Gather(local_seeds, NSEEDS, MPI_INT, tmp, NSEEDS, MPI_INT, 0, MPI_COMM_WORLD);
+
     print_local_array("Result 1", tmp, NSEEDS*nprocs);
     free(tmp);
 
@@ -145,6 +148,9 @@ int main(int argc, char *argv[])
     }
     tmp = allocate(NSEEDS);
     // hint: call print_local_array on refs to see what it looks like
+    
+    MPI_Scatter(refs, NSEEDS, MPI_INT, tmp, NSEEDS, MPI_INT, 0, MPI_COMM_WORLD);
+
     print_distributed_array("Result 2", tmp, NSEEDS);
     free(tmp);
     free(refs);
@@ -155,6 +161,9 @@ int main(int argc, char *argv[])
     tmp = allocate(NSEEDS);
     memcpy(tmp, local_seeds, sizeof(int)*NSEEDS);
     // hint: send rank 0's seeds to everyone
+    
+    MPI_Bcast(tmp, NSEEDS, MPI_INT, 0, MPI_COMM_WORLD);
+
     print_distributed_array("Result 3", tmp, NSEEDS);
     free(tmp);
 
@@ -163,6 +172,9 @@ int main(int argc, char *argv[])
 
     tmp = allocate(NSEEDS);
     // hint: everyone needs a copy of the first seed from each process
+    MPI_Allgather(local_seeds, 1, MPI_INT, tmp, 1, MPI_INT, MPI_COMM_WORLD);    
+    
+
     print_distributed_array("Result 4", tmp, NSEEDS);
     free(tmp);
 
