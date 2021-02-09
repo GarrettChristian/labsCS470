@@ -257,8 +257,11 @@ int main(int argc, char *argv[])
 
 
     /* RESULT 10 */
+    local_sum = local_seeds[my_rank];
+    int sum = 0;
+    
+    MPI_Reduce(&local_sum, &sum, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
 
-    int sum;
     print_local_array("Result 10", &sum, 1);
 
 
