@@ -3,7 +3,7 @@
  *
  * CS 470 MPI Communication Lab
  *
- * Name(s): Alexander Castro 
+ * Name(s): Alexander Castro, Garrett Christian
  *
  * The goal of this exercise is to gain experience using MPI collective and
  * point-to-point communication calls. This program is meant to be run with four
