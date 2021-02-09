@@ -183,6 +183,11 @@ int main(int argc, char *argv[])
 
     tmp = allocate(NSEEDS);
     // hint: do a matrix transpose!
+    MPI_Scatter(local_seeds, 1, MPI_INT, tmp, 1, MPI_INT, 0, MPI_COMM_WORLD);
+    MPI_Scatter(local_seeds, 1, MPI_INT, tmp + 1, 1, MPI_INT, 1, MPI_COMM_WORLD);
+    MPI_Scatter(local_seeds, 1, MPI_INT, tmp + 2, 1, MPI_INT, 2, MPI_COMM_WORLD);
+    MPI_Scatter(local_seeds, 1, MPI_INT, tmp + 3, 1, MPI_INT, 3, MPI_COMM_WORLD);
+
     print_distributed_array("Result 5", tmp, NSEEDS);
     free(tmp);
 
@@ -191,6 +196,8 @@ int main(int argc, char *argv[])
 
     tmp = allocate(NSEEDS);
     // hint: sum corresponding seeds; everyone needs the results
+    MPI_Allreduce(local_seeds, tmp, NSEEDS, MPI_INT, MPI_SUM, MPI_COMM_WORLD);    
+
     print_distributed_array("Result 6", tmp, NSEEDS);
     free(tmp);
 
@@ -199,6 +206,15 @@ int main(int argc, char *argv[])
 
     tmp = allocate(NSEEDS);
     // hint: rotate seeds to the right by one process
+
+    MPI_Status status;    
+
+    int sender = (my_rank + 1) % nprocs;
+    int reciever = (my_rank - 1 + nprocs) % nprocs;
+
+
+    MPI_Sendrecv(local_seeds, NSEEDS, MPI_INT, sender, 123, tmp, NSEEDS, MPI_INT, reciever, 123, MPI_COMM_WORLD, &status);
+
     print_distributed_array("Result 7", tmp, NSEEDS);
     free(tmp);
 
@@ -210,6 +226,8 @@ int main(int argc, char *argv[])
         local_sum += local_seeds[i];
     }
     // hint: use local_sum
+    MPI_Reduce(&local_sum, &global_sum, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+    
     print_local_array("Result 8", &global_sum, 1);
 
 
@@ -228,6 +246,7 @@ int main(int argc, char *argv[])
             break;
     }
     int prod = a * b * c;
+
     print_local_array("Result 9", &prod, 1);
 
 
