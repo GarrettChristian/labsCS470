@@ -237,12 +237,18 @@ int main(int argc, char *argv[])
     switch (my_rank) {
         case 0:
             // hint: what is the prime factorization of 715?
-            break;
+	    MPI_Recv(&a, 1, MPI_INT, 1,123, MPI_COMM_WORLD, &status);            
+	    MPI_Recv(&b, 1, MPI_INT, 2,123, MPI_COMM_WORLD, &status);            
+	    MPI_Recv(&c, 1, MPI_INT, 3,123, MPI_COMM_WORLD, &status);            
+	    break;
         case 1:
+	    MPI_Ssend(local_seeds + 1, 1, MPI_INT, 0, 123, MPI_COMM_WORLD);
             break;
         case 2:
+	    MPI_Ssend(local_seeds + 3, 1, MPI_INT, 0, 123, MPI_COMM_WORLD);
             break;
         case 3:
+	    MPI_Ssend(local_seeds + 1, 1, MPI_INT, 0, 123, MPI_COMM_WORLD);
             break;
     }
     int prod = a * b * c;
